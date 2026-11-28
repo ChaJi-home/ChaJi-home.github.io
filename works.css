@@ -63,10 +63,28 @@ header .logo{font:500 22px/1.3 Arial,'Microsoft YaHei',sans-serif}
   gap:16px min(var(--editor-gap,24px),12px)!important;align-items:start;
  }
  .featured-masonry>*,.featured-masonry.editor-grid>*,.collection-grid>*,.collection-grid.editor-grid>*{margin:0!important;order:var(--mobile-order,1000000)}
- .featured-masonry.mobile-waterfall,.collection-grid.mobile-waterfall{
+ .featured-masonry.sequential-waterfall,.collection-grid.sequential-waterfall{
   display:block!important;position:relative;height:var(--waterfall-height);
  }
- .featured-masonry.mobile-waterfall>*,.collection-grid.mobile-waterfall>*{
+ .featured-masonry.sequential-waterfall>*,.collection-grid.sequential-waterfall>*{
   position:absolute;left:var(--waterfall-x,0);top:var(--waterfall-y,0);width:var(--waterfall-width);
  }
 }
+
+/* The homepage reads left-to-right at every size; column flow is no longer used. */
+.featured-masonry,.featured-masonry.editor-grid{
+ display:grid!important;column-count:auto!important;
+ grid-template-columns:repeat(var(--editor-columns,3),minmax(0,1fr))!important;
+ gap:var(--editor-gap,24px)!important;align-items:start;
+}
+.featured-masonry>*,.featured-masonry.editor-grid>*{margin:0!important;order:0}
+@media(max-width:1050px){
+ .featured-masonry,.featured-masonry.editor-grid{grid-template-columns:repeat(var(--editor-tablet-columns,2),minmax(0,1fr))!important}
+ .featured-masonry>*,.featured-masonry.editor-grid>*{order:var(--tablet-order,1000000)}
+}
+@media(max-width:680px){
+ .featured-masonry,.featured-masonry.editor-grid{grid-template-columns:repeat(var(--editor-mobile-columns,2),minmax(0,1fr))!important;gap:16px min(var(--editor-gap,24px),12px)!important}
+ .featured-masonry>*,.featured-masonry.editor-grid>*{order:var(--mobile-order,1000000)}
+}
+.featured-masonry.sequential-waterfall,.collection-grid.sequential-waterfall{display:block!important;position:relative;height:var(--waterfall-height)}
+.featured-masonry.sequential-waterfall>*,.collection-grid.sequential-waterfall>*{position:absolute;left:var(--waterfall-x,0);top:var(--waterfall-y,0);width:var(--waterfall-width);margin:0!important}
