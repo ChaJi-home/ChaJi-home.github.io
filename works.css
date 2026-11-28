@@ -1,4 +1,6 @@
 [hidden]{display:none!important}
+/* Reserve each still's natural height before lazy loading to avoid rebalancing columns. */
+.featured-masonry .shot img[style*="--image-ratio"],.collection-grid .shot img[style*="--image-ratio"]{aspect-ratio:auto var(--image-ratio)}
 .video-fallback{margin:7px 0 0;font:11px/1.7 Arial,'Microsoft YaHei',sans-serif;color:#a4ae9b}
 .video-cover>.work-type{pointer-events:none}
 .signature-work{position:relative;border-top:2px solid #d4e6b2;padding-top:0}
