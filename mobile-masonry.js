@@ -1,7 +1,12 @@
-/* Mobile waterfall: consume saved DOM order, filling the next available slot.
+/* Mobile waterfall: consume saved mobile order (DOM order by default), filling the next available slot.
    Shared by public pages and the editor iframe; never rewrites saved content. */
 (() => {
   'use strict';
+  function orderedCards(grid) {
+    return [...grid.children].map((card,index)=>({card,rank:card.style.getPropertyValue('--mobile-order').trim(),index}))
+      .sort((a,b)=>(a.rank===''?1e6+a.index:Number(a.rank))-(b.rank===''?1e6+b.index:Number(b.rank))).map(item=>item.card);
+  }
+  function saveOrder(cards) { cards.forEach((card,index)=>card.style.setProperty('--mobile-order',String(index))); }
   function mount(doc) {
     const win = doc.defaultView;
     if (!win || !win.matchMedia) return () => {};
@@ -35,7 +40,7 @@
         set(grid, '--waterfall-width', `${(width - gap * (columns - 1)) / columns}px`);
         grid.classList.add('mobile-waterfall');
         const heights = Array(columns).fill(0);
-        for (const card of grid.children) {
+        for (const card of orderedCards(grid)) {
           if (resize && !observed.has(card)) { resize.observe(card); observed.add(card); }
           if (card.hidden || win.getComputedStyle(card).display === 'none') continue;
           // A left-hand tie gives the first row the first N saved works.
@@ -76,7 +81,7 @@
       }
     };
   }
-  window.PortfolioMasonry = {mount};
+  window.PortfolioMasonry = {mount, orderedCards, saveOrder};
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => mount(document), {once:true});
   else mount(document);
 })();
