@@ -1,0 +1,70 @@
+// Feather study / Detail Wrangle / Run Over: Detail (only once)
+// Use an empty Geometry input. This creates ordinary open polylines.
+// Demonstration rebuilt for the case study; not the original project's code.
+// Does not create SideFX condensed feathers or microscopic hooked barbules.
+int pairs = 180;
+int segments = 24;
+int seed = 7;
+float length = 1.0;
+float halfwidth = 0.22;
+float bend = 0.09;
+float sweep = 0.28;
+float disorder = 0.012;
+float barbwidth = 0.0007;
+float PI = 3.141592653589793;
+
+addpointattrib(0, "width", 0.0);
+addpointattrib(0, "curveu", 0.0);
+addpointattrib(0, "root_t", 0.0);
+addprimattrib(0, "side", 0);
+
+// 01 / A sampled shaft: C(t) = (0, L*t, bend*sin(PI*t)).
+int shaft = addprim(0, "polyline");
+setprimgroup(0, "shaft", shaft, 1);
+for (int j = 0; j <= 64; j++)
+{
+    float t = float(j) / 64.0;
+    vector C = set(0.0, length*t, bend*sin(PI*t));
+    int pt = addpoint(0, C);
+    addvertex(0, shaft, pt);
+    float w = max(0.00015, 0.008*pow(1.0-t, 1.3));
+    setpointattrib(0, "width", pt, w, "set");
+    setpointattrib(0, "curveu", pt, t, "set");
+}
+
+// 02 / Two barbs per station; each barb has its own stable random seed.
+for (int i = 0; i < pairs; i++)
+{
+    float t = fit(float(i), 0.0, float(pairs-1), 0.05, 0.97);
+    vector C = set(0.0, length*t, bend*sin(PI*t));
+    vector T = normalize(set(0.0, length, bend*PI*cos(PI*t)));
+    vector B = set(1.0, 0.0, 0.0);
+    vector N = normalize(cross(B, T));
+    float envelope = pow(max(0.0, sin(PI*t)), 0.72);
+    float down = 1.0 - smooth(0.12, 0.32, t);
+
+    for (int side = -1; side <= 1; side += 2)
+    {
+        float r = rand(float(i*37 + side*19 + seed*101));
+        float span = halfwidth * envelope * fit01(r, 0.90, 1.06);
+        int prim = addprim(0, "polyline");
+        setprimgroup(0, "barbs", prim, 1);
+        setprimattrib(0, "side", prim, side, "set");
+        for (int j = 0; j <= segments; j++)
+        {
+            float u = float(j) / float(segments);
+            // Lateral spread + tipward sweep + a coherent local ripple.
+            float n = noise(set(t*8.0, u*5.0, float(seed+side))) - 0.5;
+            vector P = C + float(side)*B*span*u
+                         + T*sweep*span*pow(u, 1.35);
+            float curl = down * 0.025 * sin(u*PI*3.0 + r*PI*2.0);
+            P += N * (disorder*n + curl) * u*u;
+            int pt = addpoint(0, P);
+            addvertex(0, prim, pt);
+            float w = max(0.00004, barbwidth*pow(1.0-u, 1.5));
+            setpointattrib(0, "width", pt, w, "set");
+            setpointattrib(0, "curveu", pt, u, "set");
+            setpointattrib(0, "root_t", pt, t, "set");
+        }
+    }
+}
