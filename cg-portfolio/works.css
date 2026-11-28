@@ -1,4 +1,6 @@
 [hidden]{display:none!important}
+.video-fallback{margin:7px 0 0;font:11px/1.7 Arial,'Microsoft YaHei',sans-serif;color:#a4ae9b}
+.video-cover>.work-type{pointer-events:none}
 header .logo{font:500 22px/1.3 Arial,'Microsoft YaHei',sans-serif}
 .works-page .mast h1,.about-page .mast h1{font-size:clamp(72px,10vw,140px)}
 .works-page .mast p,.about-page .mast p{color:#b9bdb3;font-size:14px}

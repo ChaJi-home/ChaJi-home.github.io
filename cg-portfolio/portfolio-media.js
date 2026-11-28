@@ -1,15 +1,24 @@
 'use strict';
+// Keep the original cover so starting another work or filtering stops its iframe.
+const activeBilibili=new Map();
+function stopBilibili(scope=document){
+ for(const [frame,cover] of activeBilibili){
+  if(scope.contains(frame)){frame.replaceWith(cover);activeBilibili.delete(frame);}
+ }
+}
+document.addEventListener('portfolio:stop',event=>stopBilibili(event.target));
 document.addEventListener('click', async event => {
  const cover=event.target.closest('.cover-play');
  if(cover){
   if(cover.disabled||!cover.dataset.src)return;
   const frame=document.createElement('iframe');frame.title=cover.dataset.title||'B 站视频';frame.allow='autoplay; fullscreen; picture-in-picture';frame.allowFullscreen=true;
-  frame.src=cover.dataset.src.replace('autoplay=0','autoplay=1');document.querySelectorAll('video').forEach(v=>v.pause());cover.replaceWith(frame);return;
+  const src=new URL(cover.dataset.src);src.searchParams.set('autoplay','1');
+  frame.src=src.href;stopBilibili();document.querySelectorAll('video').forEach(v=>v.pause());activeBilibili.set(frame,cover);cover.replaceWith(frame);return;
  }
  const button=event.target.closest('.local-play');if(!button)return;
  const video=button.parentElement.querySelector('video'),error=button.closest('.clip-card')?.querySelector('.play-error');if(!video)return;
  button.hidden=true;if(error)error.hidden=true;
- try{await video.play();}catch{button.hidden=false;if(error)error.hidden=false;}
+ try{stopBilibili();await video.play();}catch{button.hidden=false;if(error)error.hidden=false;}
 });
 document.querySelectorAll('video').forEach(video=>{
  const button=video.parentElement.querySelector('.local-play'),error=video.closest('.clip-card')?.querySelector('.play-error');

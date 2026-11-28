@@ -12,7 +12,7 @@
    for(const card of section.querySelector('.collection-grid').children){
     const type=card.matches('.clip-card')?'video':'image';
     const show=!card.classList.contains('editor-hidden')&&(select.value==='all'||select.value===section.dataset.series)&&(kind==='all'||kind===type);
-    card.hidden=!show;if(show)visible++;else card.querySelectorAll('video').forEach(v=>v.pause());
+    card.hidden=!show;if(show)visible++;else{card.querySelectorAll('video').forEach(v=>v.pause());card.dispatchEvent(new Event('portfolio:stop',{bubbles:true}));}
    }
    section.hidden=visible===0;total+=visible;
   }
