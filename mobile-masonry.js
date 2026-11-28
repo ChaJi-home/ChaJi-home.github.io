@@ -3,12 +3,13 @@
 (() => {
   'use strict';
   function orderedCards(grid, mode = 'mobile') {
-    if (mode === 'desktop') return [...grid.children];
-    const property = mode === 'tablet' ? '--tablet-order' : '--mobile-order';
+    if (mode !== 'mobile') return [...grid.children];
+    const property = '--mobile-order';
     return [...grid.children].map((card,index)=>({card,rank:card.style.getPropertyValue(property).trim(),index}))
       .sort((a,b)=>(a.rank===''?1e6+a.index:Number(a.rank))-(b.rank===''?1e6+b.index:Number(b.rank))).map(item=>item.card);
   }
-  function saveOrder(cards, mode = 'mobile') { const property = mode === 'tablet' ? '--tablet-order' : '--mobile-order'; cards.forEach((card,index)=>card.style.setProperty(property,String(index))); }
+  function saveOrder(cards) { cards.forEach((card,index)=>card.style.setProperty('--mobile-order',String(index))); }
+  function ensureMobileOrder(grid) { const cards=orderedCards(grid); const ranks=cards.map(c=>c.style.getPropertyValue('--mobile-order')); if(ranks.some(r=>r==='')||new Set(ranks).size!==cards.length)saveOrder(cards); }
   function mount(doc) {
     const win = doc.defaultView;
     if (!win || !win.matchMedia) return () => {};
@@ -34,15 +35,16 @@
       pending = 0;
       for (const grid of grids) {
         if (!mobile.matches && !grid.matches('.featured-masonry')) { clear(grid); continue; }
-        const mode = mobile.matches ? 'mobile' : tablet.matches ? 'tablet' : 'desktop';
+        const mode = mobile.matches ? 'mobile' : 'desktop';
         const width = grid.clientWidth;
         if (!width) continue;
         const style = win.getComputedStyle(grid);
-        const columnProperty = mode === 'mobile' ? '--editor-mobile-columns' : mode === 'tablet' ? '--editor-tablet-columns' : '--editor-columns';
-        const columns = Math.max(1, Math.min(mode === 'mobile' ? 3 : 8, parseInt(style.getPropertyValue(columnProperty)) || (mode === 'desktop' ? 3 : 2)));
-        const requestedGap = parseFloat(style.getPropertyValue('--editor-gap'));
-        const gap = Math.max(0, Math.min(mode === 'mobile' ? 12 : 80, Number.isFinite(requestedGap) ? requestedGap : 24));
-        const rowGap = mode === 'mobile' ? 16 : gap;
+        const columnProperty = mode === 'mobile' ? '--editor-mobile-columns' : tablet.matches ? '--editor-tablet-columns' : '--editor-columns';
+        const columns = Math.max(1, Math.min(mode === 'mobile' ? 3 : 8, parseInt(style.getPropertyValue(columnProperty)) || (mode === 'desktop' && !tablet.matches ? 3 : 2)));
+        const requestedGap = parseFloat(style.getPropertyValue(mode === 'mobile' ? '--editor-mobile-gap' : '--editor-gap'));
+        const gap = Math.max(0, Math.min(80, Number.isFinite(requestedGap) ? requestedGap : mode === 'mobile' ? 12 : 24));
+        const mobileRowGap = parseFloat(style.getPropertyValue('--editor-mobile-row-gap'));
+        const rowGap = mode === 'mobile' ? (Number.isFinite(mobileRowGap) ? Math.max(0,mobileRowGap) : 16) : gap;
         set(grid, '--waterfall-width', `${(width - gap * (columns - 1)) / columns}px`);
         grid.classList.add('sequential-waterfall');
         const heights = Array(columns).fill(0);
@@ -87,7 +89,7 @@
       }
     };
   }
-  window.PortfolioMasonry = {mount, orderedCards, saveOrder};
+  window.PortfolioMasonry = {mount, orderedCards, saveOrder, ensureMobileOrder};
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => mount(document), {once:true});
   else mount(document);
 })();
